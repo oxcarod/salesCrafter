@@ -1,0 +1,32 @@
+{
+  "autogenerar": true,
+  "contenido": "De tus 41 servicios médicos reales — Cardiología, Biometría, Fisioterapia, Laboratorio, Dermatología y más — SOLO publicas 11 en Google Maps, y los que expones son etiquetas como 'sanitario unisex' y 'se recomienda cita', no los servicios que la gente busca. Eso significa que cuando alguien teclea 'cardiología cerca de mí' o 'laboratorio 24 horas' en tu zona, tu clínica NO aparece — aparecen tus 9 competidores con mejor rating. Con 1,814 reseñas acumuladas ya tienes la autoridad digital; solo te falta el catálogo. Agregar estos 30 servicios tarda una tarde y multiplica las veces que te encuentran al mes. Es el cambio de mayor impacto con menor esfuerzo que puedes hacer mañana.",
+  "fuentes": {
+    "maps_audit": [
+      "Resumen Ejecutivo",
+      "Gap de Servicios",
+      "Presión Competitiva"
+    ],
+    "review_insights": [
+      "Oportunidades",
+      "Debilidades"
+    ],
+    "services": [
+      "Servicios por Reviews"
+    ]
+  },
+  "id": "oportunidades_ChIJwyzO_QX_0YURXcI28Js0Dbg",
+  "metadata": {
+    "created_at": "2026-05-04T12:46:35.587942",
+    "generado_por": "claude-code",
+    "modelo_ia": "sonnet-4",
+    "nota_editor": "",
+    "updated_at": "2026-05-04T14:28:49.360223",
+    "usuario_edito": true,
+    "version": 5
+  },
+  "nombre": "Oportunidades — Hospital Veterinario Delta",
+  "prompt_custom": "Eres un consultor que habla directo con el dueño de una clínica u hospital en México.\nTu trabajo: encontrar la oportunidad digital que tiene EL MAYOR IMPACTO en ingresos\ny explicarla en 2-3 oraciones que le quiten el aliento.\n\nReglas estrictas:\n1. Cita UN dato específico de los datos proporcionados (un número, un %, un nombre)\n2. Traduce ese dato a dinero o pacientes perdidos\n3. Explica por qué es responsabilidad del dueño hacer algo MAÑANA\n4. Tono: urgente, directo, sin rodeos. Como un amigo que le dice lo que nadie le dice.\n\nEjemplo de impacto: 'El 73% de quienes buscan tu servicio NO encuentran tu clínica en Google.\nEso son entre 90 y 140 pacientes al mes que van con tu competencia.\nCon un perfil optimizado y 3 fotos nuevas, podrías capturar al menos 30 al mes.\nEso son ~$75,000 pesos extra en tu cuenta cada mes.'\n\nResponde SOLO con JSON válido: {conclusion: string}.\nLa conclusion debe ser impactante, con dato específico, sin ambigüedad.",
+  "prompt_usado": "Eres un consultor que habla directo con el dueño de una clínica u hospital en México.\nTu trabajo: encontrar la oportunidad digital que tiene EL MAYOR IMPACTO en ingresos\ny explicarla en 2-3 oraciones que le quiten el aliento.\n\nReglas estrictas:\n1. Cita UN dato específico de los datos proporcionados (un número, un %, un nombre)\n2. Traduce ese dato a dinero o pacientes perdidos\n3. Explica por qué es responsabilidad del dueño hacer algo MAÑANA\n4. Tono: urgente, directo, sin rodeos. Como un amigo que le dice lo que nadie le dice.\n\nEjemplo de impacto: 'El 73% de quienes buscan tu servicio NO encuentran tu clínica en Google.\nEso son entre 90 y 140 pacientes al mes que van con tu competencia.\nCon un perfil optimizado y 3 fotos nuevas, podrías capturar al menos 30 al mes.\nEso son ~$75,000 pesos extra en tu cuenta cada mes.'\n\nResponde SOLO con JSON válido: {conclusion: string}.\nLa conclusion debe ser impactante, con dato específico, sin ambigüedad.",
+  "tipo": "oportunidades"
+}

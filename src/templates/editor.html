@@ -1,0 +1,1915 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>salesCrafter — Generador de Entregables</title>
+  <style>
+    :root {
+      --varkos-dark: #16213e;
+      --varkos-accent: #e94560;
+      --varkos-light: #f0f4ff;
+      --varkos-border: #c7d2fe;
+      --text: #1e1e2e;
+      --muted: #6b7280;
+      --surface: #ffffff;
+      --sidebar-w: 300px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f8f9ff;
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: auto;
+    }
+
+    /* ── Header ── */
+    #header {
+      background: var(--varkos-dark);
+      color: white;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+    #header h1 {
+      font-size: 1.1em;
+      font-weight: 700;
+      color: white;
+      letter-spacing: -0.01em;
+    }
+    #header h1 span { color: var(--varkos-accent); }
+    #prospect-selector {
+      flex: 1;
+      max-width: 400px;
+      position: relative;
+    }
+    #prospect-selector input {
+      width: 100%;
+      padding: 7px 12px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.1);
+      color: white;
+      font-size: 0.9em;
+    }
+    #prospect-selector input::placeholder { color: rgba(255,255,255,0.5); }
+    #prospect-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0; right: 0;
+      background: var(--varkos-dark);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 6px;
+      margin-top: 4px;
+      max-height: 300px;
+      overflow-y: auto;
+      z-index: 100;
+      display: none;
+    }
+    #prospect-dropdown.show { display: block; }
+    .prospect-item {
+      padding: 10px 14px;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      font-size: 0.85em;
+    }
+    .prospect-item:hover { background: rgba(255,255,255,0.08); }
+    .prospect-item .pname { font-weight: 600; color: white; }
+    .prospect-item .pmeta { color: rgba(255,255,255,0.5); font-size: 0.8em; margin-top: 2px; }
+    #header-actions { display: flex; gap: 8px; }
+    .btn-header {
+      background: rgba(255,255,255,0.1);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 6px;
+      padding: 7px 14px;
+      font-size: 0.85em;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-header:hover { background: rgba(255,255,255,0.18); }
+    .btn-header.primary {
+      background: var(--varkos-accent);
+      border-color: var(--varkos-accent);
+    }
+
+    /* ── Tabs ── */
+    #tabs {
+      background: var(--varkos-dark);
+      display: flex;
+      gap: 0;
+      padding: 0 20px;
+      flex-shrink: 0;
+    }
+    .tab {
+      padding: 10px 18px;
+      color: rgba(255,255,255,0.5);
+      font-size: 0.85em;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .tab:hover { color: rgba(255,255,255,0.8); }
+    .tab.active {
+      color: white;
+      border-bottom-color: var(--varkos-accent);
+    }
+
+    /* ── Main layout ── */
+    #main {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* ── Sidebar (bloques) ── */
+    #sidebar {
+      width: var(--sidebar-w);
+      background: white;
+      border-right: 1px solid var(--varkos-border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    #sidebar-header {
+      padding: 14px 16px 10px;
+      border-bottom: 1px solid var(--varkos-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    #sidebar-header h2 {
+      font-size: 0.8em;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    #new-bloque-btn {
+      background: var(--varkos-accent);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 5px 12px;
+      font-size: 0.8em;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    #new-bloque-btn:hover { background: #d13652; }
+    #bloque-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+    }
+    .bloque-card {
+      background: var(--varkos-light);
+      border: 1px solid var(--varkos-border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+      position: relative;
+    }
+    .bloque-card:hover { border-color: var(--varkos-accent); }
+    .bloque-card.selected {
+      border-color: var(--varkos-accent);
+      background: #fff0f2;
+      box-shadow: 0 0 0 2px rgba(233,69,96,0.15);
+    }
+    .bloque-card-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    .bloque-status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--muted);
+      flex-shrink: 0;
+    }
+    .bloque-status-dot.auto { background: #4ade80; }
+    .bloque-status-dot.edited { background: var(--varkos-accent); }
+    .bloque-name {
+      font-size: 0.85em;
+      font-weight: 600;
+      color: var(--text);
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .bloque-meta {
+      font-size: 0.72em;
+      color: var(--muted);
+      margin-left: 16px;
+    }
+    .bloque-actions {
+      display: flex;
+      gap: 4px;
+      margin-top: 6px;
+      margin-left: 16px;
+    }
+    .bloque-actions button {
+      font-size: 0.72em;
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--varkos-border);
+      background: white;
+      cursor: pointer;
+      color: var(--muted);
+    }
+    .bloque-actions button:hover { background: var(--varkos-light); color: var(--text); }
+    .bloque-actions button.delete:hover { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
+    .bloque-actions button.insert:hover { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; }
+
+    /* ── Content area ── */
+    #content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: visible;
+    }
+
+    /* ── Bloque editor ── */
+    #bloque-editor {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 32px;
+      display: none;
+    }
+    #bloque-editor.visible { display: block; }
+    .editor-section {
+      max-width: 700px;
+    }
+    .editor-section h3 {
+      font-size: 1.1em;
+      font-weight: 700;
+      color: var(--varkos-dark);
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--varkos-accent);
+    }
+    .editor-field {
+      margin-bottom: 16px;
+    }
+    .editor-field label {
+      display: block;
+      font-size: 0.8em;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .editor-field input[type="text"],
+    .editor-field textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--varkos-border);
+      border-radius: 8px;
+      font-size: 0.9em;
+      font-family: inherit;
+      color: var(--text);
+      background: white;
+    }
+    .editor-field input[type="text"]:focus,
+    .editor-field textarea:focus {
+      outline: none;
+      border-color: var(--varkos-accent);
+      box-shadow: 0 0 0 3px rgba(233,69,96,0.1);
+    }
+    .editor-field textarea {
+      min-height: 200px;
+      resize: vertical;
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 0.82em;
+      line-height: 1.6;
+    }
+    .editor-field textarea.contenido-preview {
+      font-family: Georgia, serif;
+      font-size: 0.9em;
+      line-height: 1.7;
+    }
+    .editor-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .editor-checkbox input[type="checkbox"] {
+      width: 18px; height: 18px;
+      accent-color: var(--varkos-accent);
+    }
+    .editor-checkbox label {
+      font-size: 0.88em;
+      font-weight: 500;
+      color: var(--text);
+      margin: 0;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+    .editor-hint {
+      font-size: 0.75em;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* Fuentes checkboxes */
+    .fuentes-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+    .fuente-check {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border: 1px solid var(--varkos-border);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.82em;
+      background: white;
+      transition: background 0.1s;
+    }
+    .fuente-check:hover { background: var(--varkos-light); }
+    .fuente-check.checked { background: #fff0f2; border-color: var(--varkos-accent); }
+    .fuente-check input { display: none; }
+    .fuente-check .checkmark {
+      width: 16px; height: 16px;
+      border: 2px solid var(--varkos-border);
+      border-radius: 3px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      color: white;
+      background: white;
+      transition: all 0.1s;
+    }
+    .fuente-check.checked .checkmark {
+      background: var(--varkos-accent);
+      border-color: var(--varkos-accent);
+    }
+    .fuente-seccion-label {
+      grid-column: 1 / -1;
+      font-size: 0.72em;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-top: 4px;
+      border-bottom: 1px solid var(--varkos-border);
+      padding-bottom: 2px;
+    }
+
+    /* Tree de subsecciones */
+    .tree-section {
+      border: 1px solid var(--varkos-border);
+      border-radius: 8px;
+      margin-bottom: 4px;
+      overflow: hidden;
+    }
+    .tree-section-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: #f0f2ff;
+      cursor: pointer;
+      user-select: none;
+    }
+    .tree-section-header:hover { background: #e4e7ff; }
+    .tree-arrow { font-size: 0.7em; color: var(--muted); }
+    .tree-sec-label { font-size: 0.82em; font-weight: 600; color: var(--varkos-dark); flex: 1; }
+    .tree-sec-count { font-size: 0.72em; color: var(--muted); background: #e4e7ff; border-radius: 10px; padding: 1px 7px; }
+    .tree-subs { display: none; padding: 6px 12px 6px 28px; background: #fff; }
+    .tree-section.expanded .tree-subs { display: block; }
+    .fuente-check.sub {
+      font-size: 0.8em;
+      padding: 4px 8px;
+      margin: 2px 0;
+    }
+
+    /* Acciones del editor */
+    .editor-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid var(--varkos-border);
+    }
+    .btn-editor {
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 0.88em;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+    }
+    .btn-editor.primary {
+      background: var(--varkos-accent);
+      color: white;
+    }
+    .btn-editor.primary:hover { background: #d13652; }
+    .btn-editor.secondary {
+      background: white;
+      color: var(--text);
+      border: 1px solid var(--varkos-border);
+    }
+    .btn-editor.secondary:hover { background: var(--varkos-light); }
+    .btn-editor.danger {
+      background: white;
+      color: #dc2626;
+      border: 1px solid #fca5a5;
+    }
+    .btn-editor.danger:hover { background: #fee2e2; }
+
+    .editor-version {
+      font-size: 0.75em;
+      color: var(--muted);
+      margin-top: 12px;
+    }
+
+    /* ── Entregable editor ── */
+    #entregable-editor {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0;
+      display: none;
+    }
+    #entregable-editor.visible { display: flex; flex-direction: column; }
+
+    .entregable-layout {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+    .entregable-bloques-panel {
+      width: var(--sidebar-w);
+      border-right: 1px solid var(--varkos-border);
+      overflow-y: auto;
+      padding: 12px;
+    }
+    .entregable-bloques-panel h3 {
+      font-size: 0.75em;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .entregable-bloque-item {
+      background: var(--varkos-light);
+      border: 1px solid var(--varkos-border);
+      border-radius: 6px;
+      padding: 8px 10px;
+      margin-bottom: 6px;
+      font-size: 0.82em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .entregable-bloque-item:hover { border-color: var(--varkos-accent); background: #fff0f2; }
+    .entregable-bloque-item .insert-icon { margin-left: auto; color: var(--muted); font-size: 0.9em; }
+
+    .entregable-canvas {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      overflow: hidden;
+    }
+    .canvas-toolbar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+      flex-shrink: 0;
+    }
+    .canvas-toolbar select {
+      padding: 6px 10px;
+      border: 1px solid var(--varkos-border);
+      border-radius: 6px;
+      font-size: 0.85em;
+      background: white;
+    }
+    .canvas-toolbar button {
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 0.85em;
+      cursor: pointer;
+      border: 1px solid var(--varkos-border);
+      background: white;
+      transition: background 0.1s;
+    }
+    .canvas-toolbar button:hover { background: var(--varkos-light); }
+    .canvas-toolbar button.primary { background: var(--varkos-accent); color: white; border-color: var(--varkos-accent); }
+    .canvas-toolbar button.primary:hover { background: #d13652; }
+
+    #entregable-canvas {
+      flex: 1;
+      min-height: 0;
+      width: 100%;
+      border: 1px solid var(--varkos-border);
+      border-radius: 8px;
+      padding: 20px 24px;
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 0.95em;
+      line-height: 1.8;
+      color: var(--varkos-dark);
+      background: white;
+      resize: vertical;
+    }
+    #entregable-canvas:focus { border-color: var(--varkos-accent); }
+
+    .bloque-insertado-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #fff0f2;
+      border: 1px solid #fda4af;
+      color: var(--varkos-accent);
+      border-radius: 4px;
+      padding: 2px 8px;
+      font-size: 0.8em;
+      font-family: system-ui, sans-serif;
+      cursor: pointer;
+      margin: 2px;
+    }
+    .bloque-insertado-chip:hover { background: #ffe4e6; }
+
+    .entregable-preview {
+      display: none;
+      border: 1px solid var(--varkos-border);
+      border-radius: 8px;
+      padding: 32px 40px;
+      background: white;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      flex: 1;
+      overflow-y: auto;
+      min-height: 0;
+    }
+    .entregable-preview.visible {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      overflow: visible;
+      min-height: 0;
+    }
+    .preview-toolbar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--varkos-border);
+    }
+    .preview-toolbar button {
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 0.82em;
+      cursor: pointer;
+      border: 1px solid var(--varkos-border);
+      background: white;
+      color: var(--text);
+      font-family: inherit;
+    }
+    .preview-toolbar button:hover { background: var(--varkos-light); }
+    .preview-toolbar .primary {
+      background: var(--varkos-accent); color: white; border-color: var(--varkos-accent); }
+    #entregable-preview-content {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: auto;
+      min-height: 0;
+    }
+    /* Override carta teaser max-width so it fits inside the panel */
+    #entregable-preview-content html,
+    #entregable-preview-content body {
+      max-width: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    #entregable-preview-content > * {
+      max-width: 100% !important;
+      box-sizing: border-box;
+    }
+    .preview-toolbar .primary:hover { background: #d13652; }
+
+    /* ── Panel de bienvenida ── */
+    #welcome-panel {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      font-size: 1.1em;
+      flex-direction: column;
+      gap: 12px;
+    }
+    #welcome-panel .welcome-icon { font-size: 3em; opacity: 0.3; }
+    #welcome-panel p { opacity: 0.6; font-size: 0.9em; }
+
+    /* ── Modal nuevo bloque ── */
+    #modal-new-bloque {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+    }
+    #modal-new-bloque.show { display: flex; }
+    .modal-content {
+      background: white;
+      border-radius: 16px;
+      padding: 28px;
+      max-width: 480px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .modal-header h2 { font-size: 1.1em; color: var(--varkos-dark); }
+    .modal-close {
+      background: none; border: none;
+      font-size: 1.2em; cursor: pointer;
+      color: var(--muted); padding: 4px;
+    }
+    .bloque-tipo-item {
+      border: 1px solid var(--varkos-border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .bloque-tipo-item:hover { border-color: var(--varkos-accent); background: #fff0f2; }
+    .bloque-tipo-item h4 { font-size: 0.9em; font-weight: 600; margin-bottom: 4px; }
+    .bloque-tipo-item p { font-size: 0.78em; color: var(--muted); }
+
+    /* ── Loading overlay / spinner ── */
+  .loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(22,33,62,0.7);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 400;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .loading-overlay.show { display: flex; }
+  .loading-card {
+    background: white;
+    border-radius: 16px;
+    padding: 28px 36px;
+    min-width: 320px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  }
+  .loading-title {
+    font-size: 1em;
+    font-weight: 700;
+    color: var(--varkos-dark);
+    margin-bottom: 14px;
+  }
+  .loading-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 0;
+    font-size: 0.85em;
+    color: #555;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .loading-item:last-child { border-bottom: none; }
+  .loading-item.done { color: #059669; }
+  .loading-item.error { color: #dc2626; }
+  .loading-item.pending { color: #999; }
+  .loading-icon { font-size: 1em; flex-shrink: 0; }
+  .loading-spinner-sm {
+    width: 16px; height: 16px;
+    border: 2px solid #e0e0e0;
+    border-top-color: var(--varkos-accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+  .loading-done-icon { color: #059669; font-size: 1em; }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--varkos-dark);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 0.88em;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s;
+      z-index: 300;
+    }
+    #toast.show { transform: translateY(0); opacity: 1; }
+    #toast.success { background: #059669; }
+    #toast.error { background: #dc2626; }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<div id="header">
+  <h1>sales<span>Crafter</span></h1>
+  <div id="prospect-selector">
+    <input type="text" id="prospect-input" placeholder="Buscar prospecto..." autocomplete="off">
+    <div id="prospect-dropdown"></div>
+  </div>
+  <div id="header-actions">
+    <span id="prospect-info" style="font-size:0.82em; color:rgba(255,255,255,0.6);"></span>
+  </div>
+</div>
+
+<!-- ── Tabs ── -->
+<div id="tabs">
+  <div class="tab active" data-tab="bloques">Bloques</div>
+  <div class="tab" data-tab="carta-teaser">Carta Teaser</div>
+  <div class="tab" data-tab="presentacion-intro">Presentación Intro</div>
+  <div class="tab" data-tab="presentacion-dirigida">Presentación Dirigida</div>
+</div>
+
+<!-- ── Main ── -->
+<div id="main">
+
+  <!-- ── Sidebar (bloques) ── -->
+  <div id="sidebar">
+    <div id="sidebar-header">
+      <h2>Bloques</h2>
+      <button id="new-bloque-btn" onclick="openNewBloqueModal()">+ Nuevo</button>
+    </div>
+    <div id="bloque-list">
+      <div style="padding:16px; color:var(--muted); font-size:0.85em;">
+        Selecciona un prospecto para ver sus bloques.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Content ── -->
+  <div id="content">
+
+    <!-- Welcome panel -->
+    <div id="welcome-panel">
+      <div class="welcome-icon">✦</div>
+      <p>Selecciona un prospecto para comenzar</p>
+    </div>
+
+    <!-- Bloque editor -->
+    <div id="bloque-editor">
+      <div class="editor-section">
+
+        <h3 id="editor-title">Bloque</h3>
+
+        <div class="editor-field">
+          <label>Nombre del bloque</label>
+          <input type="text" id="bloque-nombre" placeholder="Hook Dinero — Nombre del Prospecto">
+        </div>
+
+        <div class="editor-field">
+          <label>Contenido (editable)</label>
+          <textarea id="bloque-contenido" rows="14"
+            style="width:100%; padding:12px 16px; border:1px solid var(--varkos-border); border-radius:8px;
+                   font-family:Georgia,serif; font-size:0.9em; line-height:1.7;
+                   color:var(--varkos-dark); resize:vertical; background:white;"
+            placeholder="El contenido aparecerá aquí. Puedes editarlo directamente."></textarea>
+          <div class="editor-hint">Editable. Cambia lo que necesites y haz clic en Guardar.</div>
+        </div>
+
+        <div class="editor-field">
+          <label>Prompt usado para generar (editable)</label>
+          <textarea id="bloque-prompt-usado" rows="8"
+            style="width:100%; padding:12px 16px; border:1px solid var(--varkos-border); border-radius:8px;
+                   font-family:'SF Mono',monospace; font-size:0.75em; line-height:1.6;
+                   color:#444; resize:vertical; background:#f8f9ff;"
+            placeholder="El prompt aparecerá aquí. Puedes editarlo para regenerar con cambios."></textarea>
+        </div>
+
+        <div class="editor-field">
+          <label>Fuentes</label>
+          <div class="fuentes-grid" id="fuentes-grid">
+            <div class="fuente-seccion-label">Secciones de UnifiedCache</div>
+          </div>
+        </div>
+
+        <div class="editor-field">
+          <label>Nota del editor <span style="font-weight:400; text-transform:none;">(opcional)</span></label>
+          <input type="text" id="bloque-nota" placeholder="Ej: Bajé el número de 8 a 5 porque 3 son sub-servicios">
+        </div>
+
+        <div class="editor-checkbox">
+          <input type="checkbox" id="autogenerar-check" checked>
+          <label for="autogenerar-check">Autogenerar</label>
+          <span class="editor-hint">Se regenera automáticamente al cargar nuevos prospectos</span>
+        </div>
+
+        <div class="editor-actions">
+          <button class="btn-editor primary" id="btn-guardar" onclick="guardarBloque()">Guardar</button>
+          <button class="btn-editor secondary" id="btn-regenerar" onclick="regenerarBloque()">Regenerar</button>
+          <button class="btn-editor secondary" id="btn-duplicar" onclick="duplicarBloque()">Duplicar</button>
+          <button class="btn-editor danger" onclick="eliminarBloque()">Eliminar</button>
+        </div>
+
+        <div class="editor-version" id="editor-version"></div>
+      </div>
+    </div>
+
+    <!-- Entregable: Carta Teaser -->
+    <div id="entregable-editor" data-tipo="">
+      <div class="entregable-layout">
+        <div class="entregable-bloques-panel">
+          <h3>Bloques disponibles</h3>
+          <div id="entregable-bloques-list"></div>
+          <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--varkos-border);">
+            <button class="btn-editor secondary" style="width:100%; font-size:0.8em;" onclick="insertTextoLibre()">+ Texto libre</button>
+          </div>
+        </div>
+        <div class="entregable-canvas">
+          <div class="canvas-toolbar">
+            <select id="entregable-tipo-select">
+              <option value="carta_teaser">Carta Teaser</option>
+              <option value="presentacion_intro">Presentación Introductoria</option>
+              <option value="presentacion_dirigida">Presentación Dirigida</option>
+            </select>
+            <button onclick="generarPreview()">Vista previa</button>
+            <button class="primary" onclick="exportarDOCX()">Exportar DOCX</button>
+            <button class="primary" onclick="exportarHTML()">Exportar HTML</button>
+          </div>
+          <textarea id="entregable-canvas" rows="20"
+            placeholder="Selecciona bloques del panel izquierdo y usa [→] para insertarlos aquí..."></textarea>
+          <div id="entregable-preview" class="entregable-preview">
+            <div class="preview-toolbar">
+              <button onclick="volverAEditor()">← Volver al editor</button>
+              <button class="primary" onclick="exportarDOCX()">Exportar DOCX</button>
+              <button class="primary" onclick="exportarHTML()">Exportar HTML</button>
+            </div>
+            <div id="entregable-preview-content"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── Modal nuevo bloque ── -->
+<div id="modal-new-bloque">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Nuevo Bloque</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div id="bloque-tipos-list"></div>
+  </div>
+</div>
+
+<!-- ── Loading overlay ── -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="loading-card">
+    <div class="loading-title" id="loading-title">Generando bloques...</div>
+    <div id="loading-items"></div>
+  </div>
+</div>
+
+<!-- ── Toast ── -->
+<div id="toast"></div>
+
+<script>
+// ─── State ──────────────────────────────────────────────────────────────────
+
+let currentPlaceId = '';
+let currentProspectName = '';
+let allProspects = [];
+let currentBloques = [];
+let selectedBloque = null;  // bloque en edición
+let bloqueTipos = [];
+
+// fuentesState: { section: { sub_label: bool } }
+let fuentesState = {};
+
+// ─── Init ──────────────────────────────────────────────────────────────────
+
+async function init() {
+  // Cargar tipos de bloque
+  try {
+    const r = await fetch('/api/bloque/tipos');
+    const d = await r.json();
+    bloqueTipos = d.tipos || [];
+    renderBloqueTiposModal();
+  } catch(e) { console.error(e); }
+
+  // Prospect selector
+  const input = document.getElementById('prospect-input');
+  input.addEventListener('input', filterProspects);
+  input.addEventListener('focus', () => loadProspects().then(showDropdown));
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Escape') hideDropdown();
+  });
+  document.addEventListener('click', e => {
+    if (!e.target.closest('#prospect-selector')) hideDropdown();
+  });
+
+  // Tabs
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+  });
+}
+
+// ─── Prospect selector ─────────────────────────────────────────────────────
+
+async function loadProspects() {
+  if (allProspects.length) return;
+  try {
+    const r = await fetch('/api/prospects');
+    const d = await r.json();
+    allProspects = d.prospects || [];
+  } catch(e) { console.error(e); allProspects = []; }
+}
+
+function filterProspects() {
+  const q = document.getElementById('prospect-input').value.toLowerCase();
+  const dd = document.getElementById('prospect-dropdown');
+  if (!q) { dd.classList.remove('show'); return; }
+  const filtered = allProspects.filter(p =>
+    (p.name || '').toLowerCase().includes(q) ||
+    (p.place_id || '').toLowerCase().includes(q)
+  );
+  dd.innerHTML = filtered.map(p => `
+    <div class="prospect-item" onclick="selectProspect('${p.place_id}', '${encodeURIComponent(p.name)}')">
+      <div class="pname">${p.name}</div>
+      <div class="pmeta">${p.place_id.substring(0, 20)}... · ${p.cached_sections?.length || 0} secciones</div>
+    </div>`).join('');
+  dd.classList.add('show');
+}
+
+function showDropdown() {
+  if (allProspects.length) {
+    const dd = document.getElementById('prospect-dropdown');
+    const q = document.getElementById('prospect-input').value.toLowerCase();
+    const filtered = allProspects.filter(p =>
+      !q || (p.name || '').toLowerCase().includes(q)
+    );
+    dd.innerHTML = filtered.map(p => `
+      <div class="prospect-item" onclick="selectProspect('${p.place_id}', '${encodeURIComponent(p.name)}')">
+        <div class="pname">${p.name}</div>
+        <div class="pmeta">${p.place_id.substring(0, 20)}... · score: ${p.score_gral || '?'}</div>
+      </div>`).join('');
+    dd.classList.add('show');
+  }
+}
+
+function hideDropdown() {
+  document.getElementById('prospect-dropdown').classList.remove('show');
+}
+
+async function selectProspect(placeId, name) {
+  currentPlaceId = placeId;
+  currentProspectName = decodeURIComponent(name);
+  document.getElementById('prospect-input').value = currentProspectName;
+  hideDropdown();
+  document.getElementById('prospect-info').textContent = `${currentProspectName.substring(0, 30)}...`;
+
+  // Cargar bloques y árbol de fuentes
+  await Promise.all([loadBloques(), loadFuentesTree()]);
+
+  // Auto-generar si no hay bloques
+  if (currentBloques.length === 0) {
+    showLoadingOverlay('Generando bloques iniciales...', AUTOGEN_TIPOS.map(t => t.nombre));
+    await autogenBloques();
+    hideLoadingOverlay();
+    await loadBloques();
+  }
+}
+
+async function loadBloques() {
+  try {
+    const r = await fetch(`/api/prospect/${currentPlaceId}/bloques`);
+    const d = await r.json();
+    const metas = d.bloques || [];
+
+    // Cargar contenido completo de cada bloque en paralelo
+    const fullBlocks = await Promise.all(
+      metas.map(b =>
+        fetch(`/api/prospect/${currentPlaceId}/bloque/${b.id}`)
+          .then(r => r.json())
+          .then(r => r.bloque)
+          .catch(() => b)  // fallback a metadata si falla
+      )
+    );
+
+    currentBloques = fullBlocks;
+    renderBloqueList();
+    // Ocultar editor, mostrar welcome si no hay selección
+    document.getElementById('welcome-panel').style.display = currentBloques.length ? 'none' : 'flex';
+    document.getElementById('bloque-editor').classList.remove('visible');
+    selectedBloque = null;
+  } catch(e) { console.error(e); }
+}
+
+const AUTOGEN_TIPOS = [
+  { tipo: 'hook_dinero', nombre: 'Hook Dinero' },
+  { tipo: 'oportunidades', nombre: 'Oportunidades' },
+  { tipo: 'fortalezas', nombre: 'Fortalezas' },
+  { tipo: 'comparativa_competitiva', nombre: 'Comparativa Competitiva' },
+  { tipo: 'insight_estrategico', nombre: 'Insight Estratégico' },
+  { tipo: 'temas_resenas', nombre: 'Temas de Reseñas' },
+];
+
+async function autogenBloques() {
+  for (let i = 0; i < AUTOGEN_TIPOS.length; i++) {
+    const t = AUTOGEN_TIPOS[i];
+    updateLoadingItem(i, 'loading');
+    try {
+      const r = await fetch(`/api/prospect/${currentPlaceId}/bloque/generar`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ tipo: t.tipo, fuentes: null, nombre: '' })
+      });
+      const d = await r.json();
+      if (d.status === 'ok') {
+        updateLoadingItem(i, 'done');
+      } else {
+        updateLoadingItem(i, 'error', d.message || 'Error');
+      }
+    } catch(e) {
+      updateLoadingItem(i, 'error', e.message);
+    }
+  }
+}
+
+function showLoadingOverlay(title, items) {
+  const overlay = document.getElementById('loading-overlay');
+  document.getElementById('loading-title').textContent = title;
+  document.getElementById('loading-items').innerHTML = items.map((n, i) =>
+    `<div class="loading-item pending" id="li-${i}">
+      <span class="loading-icon" id="li-icon-${i}"></span>
+      ${n}
+    </div>`
+  ).join('');
+  overlay.classList.add('show');
+}
+
+function updateLoadingItem(index, status, msg) {
+  const item = document.getElementById(`li-${index}`);
+  const icon = document.getElementById(`li-icon-${index}`);
+  if (!item) return;
+  item.className = `loading-item ${status}`;
+  if (status === 'loading') {
+    icon.innerHTML = '<div class="loading-spinner-sm"></div>';
+  } else if (status === 'done') {
+    icon.innerHTML = '✓';
+  } else if (status === 'error') {
+    icon.innerHTML = '✗';
+    item.title = msg || '';
+  }
+}
+
+function hideLoadingOverlay() {
+  const overlay = document.getElementById('loading-overlay');
+  overlay.classList.remove('show');
+}
+
+// ─── Bloque list ─────────────────────────────────────────────────────────────
+
+function renderBloqueList() {
+  const list = document.getElementById('bloque-list');
+  if (!currentBloques.length) {
+    list.innerHTML = '<div style="padding:16px; color:var(--muted); font-size:0.85em;">Sin bloques. <a href="#" onclick="openNewBloqueModal();return false;">Crear uno nuevo</a></div>';
+    return;
+  }
+  list.innerHTML = currentBloques.map(b => {
+    const dotClass = b.usuario_edito ? 'edited' : 'auto';
+    return `<div class="bloque-card" id="bc-${b.id}" onclick="openBloque('${b.id}')">
+      <div class="bloque-card-header">
+        <div class="bloque-status-dot ${dotClass}"></div>
+        <div class="bloque-name">${b.nombre || b.id}</div>
+      </div>
+      <div class="bloque-meta">${b.tipo} · v${b.version || 1} · ${b.updated_at ? b.updated_at.substring(0,10) : ''}</div>
+      <div class="bloque-actions">
+        <button onclick="event.stopPropagation(); insertarEnCanvas('${b.id}')" class="insert">Insertar →</button>
+        <button onclick="event.stopPropagation(); regenerarBloqueById('${b.id}')">Regenerar</button>
+        <button onclick="event.stopPropagation(); eliminarBloqueById('${b.id}')" class="delete">Eliminar</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─── Modal nuevo bloque ─────────────────────────────────────────────────────
+
+function renderBloqueTiposModal() {
+  const list = document.getElementById('bloque-tipos-list');
+  list.innerHTML = bloqueTipos.map(t => `
+    <div class="bloque-tipo-item" onclick="crearBloque('${t.tipo}')">
+      <h4>${t.nombre}</h4>
+      <p>${t.descripcion}</p>
+    </div>`).join('');
+}
+
+function openNewBloqueModal() {
+  if (!currentPlaceId) { toast('Primero selecciona un prospecto', 'error'); return; }
+  document.getElementById('modal-new-bloque').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('modal-new-bloque').classList.remove('show');
+}
+
+async function crearBloque(tipo) {
+  closeModal();
+  toast('Generando bloque...', '');
+  try {
+    const r = await fetch(`/api/prospect/${currentPlaceId}/bloque/generar`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ tipo, fuentes: null, nombre: '' })
+    });
+    const d = await r.json();
+    if (d.status === 'ok') {
+      toast('Bloque generado', 'success');
+      await loadBloques();
+      openBloque(d.bloque.id);
+    } else {
+      toast('Error: ' + (d.message || 'desconocido'), 'error');
+    }
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+// ─── Abrir / editar bloque ──────────────────────────────────────────────────
+
+async function openBloque(bloqueId) {
+  try {
+    const r = await fetch(`/api/prospect/${currentPlaceId}/bloque/${bloqueId}`);
+    const d = await r.json();
+    if (!d.bloque) { toast('Bloque no encontrado', 'error'); return; }
+
+    selectedBloque = d.bloque;
+
+    document.getElementById('welcome-panel').style.display = 'none';
+    document.getElementById('entregable-editor').classList.remove('visible');
+    document.getElementById('entregable-editor').style.display = 'none';
+    document.getElementById('bloque-editor').classList.add('visible');
+
+    const b = selectedBloque;
+    const meta = b.metadata || {};
+
+    // ─── Llenar campos ───
+    document.getElementById('editor-title').textContent = b.nombre || b.id;
+    document.getElementById('bloque-nombre').value = b.nombre || '';
+    document.getElementById('autogenerar-check').checked = b.autogenerar !== false;
+    document.getElementById('bloque-nota').value = meta.nota_editor || '';
+
+    // Contenido como texto legible (no JSON)
+    const contenidoTexto = formatearContenidoParaEdicion(b.contenido, b.tipo);
+    document.getElementById('bloque-contenido').value = contenidoTexto;
+
+    // Prompt limpio (sin DATOS)
+    const rawCustom = b.prompt_custom || '';
+    const rawUsado = b.prompt_usado || '';
+    // Limpiar cualquier DATOS que haya quedado
+    const promptParaMostrar = rawCustom.includes('--- DATOS ---')
+      ? rawCustom.split('--- DATOS ---')[0].trim()
+      : (rawUsado.includes('--- DATOS ---')
+        ? rawUsado.split('--- DATOS ---')[0].trim()
+        : (rawCustom || rawUsado));
+    document.getElementById('bloque-prompt-usado').value = promptParaMostrar;
+
+    // ─── Fuentes tree ───
+    await loadFuentesTree();
+    applyBloqueFuentes(selectedBloque.fuentes);
+    renderFuentesTree();
+
+    // ─── Versión ───
+    document.getElementById('editor-version').textContent =
+      `v${meta.version || 1} · ${meta.generado_por || 'Claude'} · ${meta.updated_at || ''}`;
+
+    // Highlight en lista
+    document.querySelectorAll('.bloque-card').forEach(el => el.classList.remove('selected'));
+    const card = document.getElementById('bc-' + bloqueId);
+    if (card) card.classList.add('selected');
+
+  } catch(e) { toast('Error cargando bloque: ' + e.message, 'error'); }
+}
+
+function renderContenidoLegible(contenido, tipo) {
+  const display = document.getElementById('bloque-contenido-display');
+  if (!contenido) { display.innerHTML = '<em style="color:var(--muted)">Sin contenido</em>'; return; }
+  display.innerHTML = renderContenidoRecursivo(contenido, tipo, 0);
+}
+
+function renderContenidoRecursivo(data, tipo, depth) {
+  if (data === null || data === undefined) return '<em style="color:#999">—</em>';
+  if (typeof data === 'string') return escHtml(data);
+  if (typeof data === 'number') return `<strong style="color:var(--varkos-accent)">${data}</strong>`;
+  if (Array.isArray(data)) {
+    if (data.length === 0) return '<em style="color:#999">sin datos</em>';
+    return '<ul style="margin:6px 0 6px 20px; padding:0;">' +
+      data.map(item => `<li style="margin:4px 0;">${renderContenidoRecursivo(item, tipo, depth+1)}</li>`).join('') +
+      '</ul>';
+  }
+  if (typeof data === 'object') {
+    // Campos especiales que merecen formato enriquecido
+    if (tipo === 'hook_dinero') return renderHookDinero(data);
+    if (tipo === 'oportunidades') return renderOportunidades(data);
+    if (tipo === 'fortalezas') return renderFortalezas(data);
+    if (tipo === 'temas_resenas') return renderTemasResenas(data);
+    if (tipo === 'insight_estrategico') return renderInsight(data);
+
+    // Generic object: flatten simple ones, drill into complex
+    const entries = Object.entries(data);
+    if (entries.length === 0) return '<em style="color:#999">vacío</em>';
+    return '<div style="margin-left:' + (depth * 16) + 'px;">' +
+      entries.map(([k, v]) => {
+        const label = k.replace(/_/g, ' ');
+        const isScalar = typeof v === 'string' || typeof v === 'number';
+        return `<div style="margin:6px 0;">
+          <span style="font-size:0.8em; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.04em;">${label}</span>
+          <div style="margin-left:10px; margin-top:2px;">${renderContenidoRecursivo(v, tipo, depth+1)}</div>
+        </div>`;
+      }).join('') + '</div>';
+  }
+  return escHtml(String(data));
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─── Formatear contenido como texto legible para edición ───────────────────
+
+function formatearContenidoParaEdicion(contenido, tipo) {
+  if (!contenido) return '';
+  return textosPlano(contenido, tipo, 0).trim();
+}
+
+function textosPlano(data, tipo, depth) {
+  if (data === null || data === undefined) return '';
+  if (typeof data === 'string' && data.trim() === '') return '';
+  if (typeof data === 'string') return data.trim() + '\n';
+  if (typeof data === 'number') return String(data) + '\n';
+
+  if (Array.isArray(data)) {
+    if (data.length === 0) return '';
+    return data.map(item => textosPlano(item, tipo, depth)).join('');
+  }
+
+  if (typeof data === 'object') {
+    let result = '';
+    const entries = Object.entries(data);
+    for (const [k, v] of entries) {
+      if (v === null || v === undefined || v === '') continue;
+      const indent = '  '.repeat(depth);
+      const label = k.replace(/_/g, ' ');
+      const formattedValue = textosPlano(v, tipo, depth + 1);
+      if (!formattedValue.trim()) continue;
+      result += `${indent}${label}: ${formattedValue}`;
+    }
+    return result;
+  }
+
+  return String(data) + '\n';
+}
+
+// ─── Guardar bloque ────────────────────────────────────────────────────────
+
+async function guardarBloque() {
+  if (!selectedBloque) return;
+  const btn = document.getElementById('btn-guardar');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>';
+
+  let contenido;
+  try {
+    contenido = JSON.parse(document.getElementById('bloque-contenido').value);
+  } catch(e) {
+    // Si no es JSON válido, intentar reconstruir el objeto desde texto plano
+    toast('Contenido no es JSON válido — se guardará como texto plano', 'error');
+    contenido = document.getElementById('bloque-contenido').value;
+  }
+
+  selectedBloque.nombre = document.getElementById('bloque-nombre').value;
+  selectedBloque.autogenerar = document.getElementById('autogenerar-check').checked;
+  selectedBloque.contenido = contenido;
+  selectedBloque.fuentes = getSelectedFuentes();
+  selectedBloque.prompt_usado = document.getElementById('bloque-prompt-usado').value;
+  // También guardar como prompt_custom para que al reabrir muestre la versión editada
+  selectedBloque.prompt_custom = selectedBloque.prompt_usado;
+  selectedBloque.metadata = selectedBloque.metadata || {};
+  selectedBloque.metadata.nota_editor = document.getElementById('bloque-nota').value;
+  selectedBloque.metadata.updated_at = new Date().toISOString();
+  selectedBloque.metadata.usuario_edito = true;
+
+  try {
+    const r = await fetch(`/api/prospect/${currentPlaceId}/bloque/guardar`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(selectedBloque)
+    });
+    const d = await r.json();
+    if (d.status === 'ok') {
+      toast('Bloque guardado', 'success');
+      const savedId = selectedBloque.id;  // CRÍTICO: guardar ID ANTES de todo
+      // Re-establecer selectedBloque desde la respuesta del backend
+      if (d.bloque) {
+        selectedBloque = d.bloque;
+        const idx = currentBloques.findIndex(b => b.id === d.bloque.id);
+        if (idx >= 0) currentBloques[idx] = d.bloque;
+      }
+      await loadBloques();  // ← esto puede reescribir currentBloques y limpiar selectedBloque
+      // Restaurar selectedBloque desde currentBloques usando el ID que guardamos
+      selectedBloque = currentBloques.find(b => b.id === savedId) || null;
+      document.getElementById('bloque-editor').classList.add('visible');
+      document.getElementById('welcome-panel').style.display = 'none';
+    } else {
+      toast('Error guardando: ' + (d.message || ''), 'error');
+    }
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+  btn.disabled = false; btn.textContent = 'Guardar';
+}
+
+// Fuentes tree (subsecciones) ─────────────────────────────────────────────
+
+// treeState: { [sec]: { open: bool, selected: Set<label>, subs: string[] } }
+let treeState = {};
+
+async function loadFuentesTree() {
+  if (!currentPlaceId) return;
+  try {
+    const r = await fetch(`/api/prospect/${currentPlaceId}/sources-tree/full`);
+    const d = await r.json();
+    if (d.status !== 'ok' || !d.tree) return;
+    treeState = {};
+    for (const [sec, subs] of Object.entries(d.tree)) {
+      if (!subs || typeof subs !== 'object') continue;
+      const subKeys = Object.keys(subs);
+
+      if (sec === 'services') {
+        // Merge servicios_publicados into services as subsección "Publicados"
+        const publicSubs = d.tree['servicios_publicados'] || {};
+        if (Object.keys(publicSubs).length > 0) {
+          subKeys.push('Publicados');
+        }
+        treeState[sec] = { open: false, selected: new Set(), subs: subKeys };
+      } else if (sec === 'servicios_publicados') {
+        // Skip — merged into services
+        continue;
+      } else {
+        treeState[sec] = { open: false, selected: new Set(), subs: subKeys };
+      }
+    }
+  } catch(e) { console.error('loadFuentesTree:', e); }
+}
+
+function applyBloqueFuentes(fuentes) {
+  // Reset all
+  for (const sec in treeState) {
+    treeState[sec].selected = new Set();
+    treeState[sec].open = false;
+  }
+  if (!fuentes || typeof fuentes !== 'object') return;
+  for (const [sec, subs] of Object.entries(fuentes)) {
+    // Handle servicios_publicados -> services mapping
+    const targetSec = (sec === 'servicios_publicados') ? 'services' : sec;
+    if (!(targetSec in treeState)) continue;
+    if (!subs || !subs.length) continue;
+    for (const label of subs) {
+      treeState[targetSec].selected.add(label);
+      treeState[targetSec].open = true;  // auto-open sections with selections
+    }
+  }
+}
+
+function renderFuentesTree() {
+  const grid = document.getElementById('fuentes-grid');
+  if (!Object.keys(treeState).length) {
+    grid.innerHTML = '<div class="fuente-seccion-label" style="color:var(--muted);font-size:0.85em;">Carga un prospecto para ver las subsecciones disponibles</div>';
+    return;
+  }
+
+  const SECTION_LABELS = {
+    maps_audit:        'Maps Audit',
+    review_insights:   'Reseñas',
+    services:          'Servicios',
+    competitive_intel:  'Competitive Audit',
+    market_audit:      'Market Audit',
+    geo_audit:         'Geo Audit',
+    prospect_analysis: 'Prospect Analysis Audit',
+    social_audit:      'Social Audit',
+    servicios_publicados: 'Servicios Publicados',
+    photos:            'Fotos',
+  };
+
+  const INTERNAL_SECS = ['_apify_meta', '_web_text', 'social_urls',
+                         'owner_response_metrics', 'competitors', 'photos'];
+
+  // Sections that should never appear
+  const EXCLUDED = new Set(['_apify_meta', 'social_urls', 'owner_response_metrics',
+                             'competitors', 'photos', '_web_text']);
+
+  let html = '<div class="fuente-seccion-label">Secciones de UnifiedCache</div>';
+
+  const visibleSecs = Object.keys(treeState).filter(k => !EXCLUDED.has(k));
+
+  for (const sec of visibleSecs) {
+    const state = treeState[sec];
+    const subLabels = state.subs || [];
+    const secLabel = SECTION_LABELS[sec] || sec.replace(/_/g, ' ');
+    const hasSubs = subLabels.length > 0;
+
+    if (hasSubs) {
+      // Expandable tree section
+      const selectedCount = state.selected.size;
+      const anySelected = selectedCount > 0;
+      const isOpen = state.open;
+      html += `<div class="tree-section" id="ts-${sec}">
+        <div class="tree-section-header" data-sec="${sec}">
+          <span class="tree-arrow" style="cursor:pointer;">${isOpen ? '▼' : '▶'}</span>
+          <span class="tree-sec-label">${secLabel}</span>
+          ${selectedCount > 0 ? `<span class="tree-sec-count" style="background:var(--varkos-accent);color:white;">${selectedCount}</span>` : `<span class="tree-sec-count">${subLabels.length}</span>`}
+        </div>
+        <div class="tree-subs" style="display:${isOpen ? 'block' : 'none'};">
+          <div style="padding:6px 0 4px 0;">`;
+      for (const sub of subLabels) {
+        const checked = state.selected.has(sub) ? 'checked' : '';
+        const safeSub = escHtml(sub);
+        html += `<label class="fuente-check sub ${checked ? 'checked' : ''}" data-sec="${sec}" data-sub="${safeSub}">
+          <input type="checkbox" style="display:none;" data-sec="${sec}" data-sub="${safeSub}" ${checked}>
+          <span class="checkmark">${checked ? '✓' : ''}</span>
+          ${safeSub}
+        </label>`;
+      }
+      html += `</div></div></div>`;
+    } else {
+      // Section with no subsections — single checkbox
+      const checked = state.selected.size > 0 ? 'checked' : '';
+      html += `<label class="fuente-check ${checked ? 'checked' : ''}" data-sec="${sec}" data-sub="__all__">
+        <input type="checkbox" style="display:none;" data-sec="${sec}" data-sub="__all__" ${checked}>
+        <span class="checkmark">${checked ? '✓' : ''}</span>
+        ${secLabel}
+      </label>`;
+    }
+  }
+
+  // Bloques generados como fuentes
+  const bloqueSecs = ['hook_dinero', 'oportunidades', 'fortalezas',
+                      'comparativa_competitiva', 'insight_estrategico',
+                      'slide_score', 'temas_resenas', 'servicios_oportunidad'];
+  const existingBloqueSecs = bloqueSecs.filter(b => currentBloques.some(cb => cb.id === b));
+  if (existingBloqueSecs.length) {
+    html += '<div class="fuente-seccion-label" style="margin-top:8px;">Bloques como fuente</div>';
+    for (const f of existingBloqueSecs) {
+      const isSrc = selectedBloque?.fuentes?.includes(f);
+      const checked = isSrc ? 'checked' : '';
+      html += `<label class="fuente-check ${checked ? 'checked' : ''}" data-sec="${f}" data-sub="__bloque__">
+        <input type="checkbox" style="display:none;" data-sec="${f}" data-sub="__bloque__" ${checked}>
+        <span class="checkmark">${checked ? '✓' : ''}</span>
+        ${f.replace(/_/g, ' ')}
+      </label>`;
+    }
+  }
+
+  grid.innerHTML = html;
+
+  // Attach event listeners (mousedown so section header click doesn't intercept)
+  document.querySelectorAll('.tree-section-header').forEach(el => {
+    el.addEventListener('mousedown', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      const sec = el.dataset.sec;
+      if (treeState[sec] !== undefined) {
+        treeState[sec].open = !treeState[sec].open;
+        renderFuentesTree();
+      }
+    });
+  });
+
+  document.querySelectorAll('.fuente-check[data-sub]').forEach(el => {
+    el.addEventListener('mousedown', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      const sec = el.dataset.sec;
+      const sub = el.dataset.sub;
+      if (!sec || treeState[sec] === undefined) return;
+
+      if (sub === '__bloque__' || sub === '__all__') {
+        // Toggle section-level
+        const hasAny = treeState[sec].selected.size > 0;
+        treeState[sec].selected = new Set(hasAny ? [] : [sub]);
+      } else {
+        // Toggle subsection
+        if (treeState[sec].selected.has(sub)) {
+          treeState[sec].selected.delete(sub);
+        } else {
+          treeState[sec].selected.add(sub);
+        }
+      }
+      el.classList.toggle('checked');
+      const check = el.querySelector('input[type=checkbox]');
+      if (check) check.checked = el.classList.contains('checked');
+      const mark = el.querySelector('.checkmark');
+      if (mark) mark.textContent = check && check.checked ? '✓' : '';
+    });
+  });
+}
+
+function getSelectedFuentes() {
+  // Returns dict { section: [selected_subs] }
+  const selected = {};
+  for (const [sec, state] of Object.entries(treeState)) {
+    const subs = Array.from(state.selected).filter(s => s !== '__all__' && s !== '__bloque__');
+    if (subs.length) selected[sec] = subs;
+  }
+  return selected;
+}
+
+// ─── Extraer texto legible de un bloque según su tipo ───────────────────────
+
+function _extraerTextoBloque(contenido, tipo) {
+  if (!contenido) return '[sin contenido]';
+
+  switch (tipo) {
+    case 'hook_dinero': {
+      const headline = contenido.headline || '';
+      const resumen = contenido.resumen || '';
+      const datos = contenido.datos_concretos || [];
+      let text = headline;
+      if (resumen) text += (text ? '\n' : '') + resumen;
+      if (datos.length) {
+        text += (text ? '\n\n' : '');
+        text += datos.map(d => `• ${d.label}: ${d.valor}`).join('\n');
+      }
+      return text || '[sin contenido]';
+    }
+    case 'oportunidades':
+    case 'fortalezas':
+    case 'comparativa_competitiva':
+    case 'insight_estrategico':
+    case 'servicios_oportunidad': {
+      return contenido.conclusion || contenido.ventaja || contenido.oportunidad || '[sin conclusión]';
+    }
+    case 'temas_resenas': {
+      const parts = [];
+      if (contenido.resumen) parts.push(contenido.resumen);
+      const pos = contenido.temas_positivos || [];
+      const neg = contenido.temas_negativos || [];
+      if (pos.length) {
+        parts.push('LO QUE VALORAN:\n' + pos.map(t => `  • ${t}`).join('\n'));
+      }
+      if (neg.length) {
+        parts.push('LO QUEJAS:\n' + neg.map(t => `  • ${t}`).join('\n'));
+      }
+      if (contenido.oportunidad_principal) {
+        parts.push('OPORTUNIDAD: ' + contenido.oportunidad_principal);
+      }
+      return parts.join('\n\n') || '[sin contenido]';
+    }
+    case 'slide_score': {
+      const parts = [];
+      if (contenido.hook) parts.push(contenido.hook);
+      if (contenido.interpretacion) parts.push(`Score: ${contenido.score} — ${contenido.interpretacion}`);
+      if (contenido.contexto) parts.push(contenido.contexto);
+      return parts.join('\n') || '[sin contenido]';
+    }
+    case 'bloque_personalizado':
+      return contenido.contenido || contenido.texto || JSON.stringify(contenido) || '[sin contenido]';
+    default:
+      // Generic: flatten simple objects
+      if (typeof contenido === 'string') return contenido;
+      const entries = Object.entries(contenido).filter(([k,v]) => v);
+      if (entries.length === 1) return String(entries[0][1]);
+      return entries.map(([k, v]) => `${k.replace(/_/g, ' ')}: ${v}`).join('\n');
+  }
+}
+
+async function regenerarBloque() {
+  if (!selectedBloque) { toast('No hay bloque seleccionado', 'error'); return; }
+  window.__regenerarLog = [];
+  const _log = (...args) => window.__regenerarLog.push(args.map(a => typeof a === 'object' ? JSON.stringify(a).substring(0,100) : String(a)).join(' '));
+  const btn = document.getElementById('btn-regenerar');
+  btn.disabled = true;
+  btn.textContent = 'Regenerando...';
+  toast('Regenerando bloque...', '');
+  _log('INICIANDO', selectedBloque?.id, currentPlaceId);
+
+  try {
+    const fuentes = getSelectedFuentes();
+    const prompt_del_editor = document.getElementById('bloque-prompt-usado').value;
+    const sbId = selectedBloque ? selectedBloque.id : 'NO_BLOCK';
+    const sbPrompt = selectedBloque ? (selectedBloque.prompt_usado || 'no_prompt') : 'null_block';
+
+    // Logging para test
+    console.log('REGEN_DEBUG bloque_id:', sbId);
+    console.log('REGEN_DEBUG fuentes:', JSON.stringify(fuentes));
+    console.log('REGEN_DEBUG prompt_len:', prompt_del_editor.length, 'has_marker:', prompt_del_editor.includes('XYZ_UNIQUE_MARKER_12345_XYZ'));
+    console.log('REGEN_DEBUG sbPrompt[:80]:', sbPrompt.substring(0, 80));
+
+    const r = await fetch(`/api/prospect/${currentPlaceId}/bloque/regenerar`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        bloque_id: sbId,
+        fuentes,
+        prompt_extra: prompt_del_editor,
+      })
+    });
+    console.log('REGEN_DEBUG fetch status:', r.status);
+    const d = await r.json();
+    console.log('REGEN_DEBUG response version:', d.bloque?.metadata?.version, 'prompt_custom[:50]:', (d.bloque?.prompt_custom || '').substring(0, 50));
+    if (d.status === 'ok') {
+      toast('Bloque regenerado (v' + d.bloque.metadata?.version + ')', 'success');
+      await loadBloques();
+      document.getElementById('bloque-editor').classList.add('visible');
+      document.getElementById('welcome-panel').style.display = 'none';
+      openBloque(d.bloque.id);
+    } else {
+      toast('Error: ' + (d.message || ''), 'error');
+      _log('ERROR:', d.message);
+    }
+  } catch(e) {
+    _log('EXCEPTION:', e.message);
+    toast('Error: ' + e.message, 'error');
+  }
+  btn.disabled = false; btn.textContent = 'Regenerar';
+}
+
+async function regenerarBloqueById(id) {
+  const card = document.getElementById('bc-' + id);
+  if (card) card.style.opacity = '0.5';
+  try {
+    const r = await fetch(`/api/prospect/${currentPlaceId}/bloque/regenerar`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ bloque_id: id })
+    });
+    const d = await r.json();
+    if (d.status === 'ok') {
+      toast('Bloque regenerado', 'success');
+      await loadBloques();
+    } else {
+      toast('Error: ' + (d.message || ''), 'error');
+    }
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+  if (card) card.style.opacity = '1';
+}
+
+async function eliminarBloque() {
+  if (!selectedBloque) return;
+  if (!confirm('¿Eliminar este bloque?')) return;
+  try {
+    const r = await fetch(`/api/prospect/${currentPlaceId}/bloque/eliminar/${selectedBloque.id}`, { method: 'DELETE' });
+    const d = await r.json();
+    if (d.status === 'ok') {
+      toast('Bloque eliminado', 'success');
+      selectedBloque = null;
+      document.getElementById('bloque-editor').classList.remove('visible');
+      document.getElementById('welcome-panel').style.display = 'flex';
+      await loadBloques();
+    } else {
+      toast('Error eliminando', 'error');
+    }
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function eliminarBloqueById(id) {
+  if (!confirm('¿Eliminar este bloque?')) return;
+  try {
+    await fetch(`/api/prospect/${currentPlaceId}/bloque/eliminar/${id}`, { method: 'DELETE' });
+    toast('Bloque eliminado', 'success');
+    await loadBloques();
+    if (selectedBloque?.id === id) {
+      selectedBloque = null;
+      document.getElementById('bloque-editor').classList.remove('visible');
+      document.getElementById('welcome-panel').style.display = 'flex';
+    }
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+function duplicarBloque() {
+  if (!selectedBloque) return;
+  const copy = JSON.parse(JSON.stringify(selectedBloque));
+  copy.id = copy.id + '_copy';
+  copy.nombre = (copy.nombre || '') + ' (copia)';
+  copy.metadata = copy.metadata || {};
+  copy.metadata.version = 1;
+  copy.metadata.usuario_edito = true;
+  copy.metadata.nota_editor = 'Duplicado de ' + selectedBloque.id;
+  guardarYAbrir(copy);
+}
+
+async function guardarYAbrir(bloque) {
+  try {
+    await fetch(`/api/prospect/${currentPlaceId}/bloque/guardar`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(bloque)
+    });
+    toast('Bloque duplicado', 'success');
+    await loadBloques();
+    openBloque(bloque.id);
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+// ─── Tabs ────────────────────────────────────────────────────────────────────
+
+function switchTab(tabName) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.tab[data-tab="${tabName}"]`).classList.add('active');
+
+  if (tabName === 'bloques') {
+    document.getElementById('entregable-editor').style.display = 'none';
+    document.getElementById('entregable-editor').classList.remove('visible');
+    document.getElementById('welcome-panel').style.display = currentBloques.length ? 'none' : 'flex';
+    document.getElementById('bloque-editor').classList.toggle('visible', !!selectedBloque);
+  } else {
+    document.getElementById('bloque-editor').classList.remove('visible');
+    document.getElementById('welcome-panel').style.display = 'none';
+    const editor = document.getElementById('entregable-editor');
+    editor.dataset.tipo = tabName;
+    editor.classList.add('visible');
+    editor.style.display = 'flex';
+    renderEntregablePanel(tabName);
+  }
+}
+
+// ─── Entregable panel ────────────────────────────────────────────────────────
+
+function renderEntregablePanel(tipo) {
+  const panel = document.getElementById('entregable-bloques-list');
+  panel.innerHTML = currentBloques.map(b => `
+    <div class="entregable-bloque-item" onclick="insertarEnCanvas('${b.id}')">
+      <span>${b.nombre || b.id}</span>
+      <span class="insert-icon">→</span>
+    </div>`).join('');
+
+  // Set default canvas content for carta teaser using new marker format
+  if (tipo === 'carta-teaser') {
+    const canvas = document.getElementById('entregable-canvas');
+    if (!canvas.value.trim()) {
+      // Insertar los bloques disponibles con contenido fresco
+      const markers = currentBloques.map(b => {
+        const contenido = _extraerTextoBloque(b.contenido, b.tipo);
+        return `[bloque:${b.tipo}]\n${contenido.trim()}\n[/bloque]`;
+      }).join('\n\n');
+      canvas.value = `${currentProspectName}\n\n${markers}\n\nSolo 20 espacios disponibles este mes para un análisis completo sin costo.\n\nTambién podemos ayudarles a equipar su clínica con las mejores marcas del mercado y financiamiento accesible.\n\nVarkos — Strategic Advice\nOscar\n[Teléfono/WhatsApp]`;
+    }
+  }
+}
+
+function insertarEnCanvas(bloqueId) {
+  const canvas = document.getElementById('entregable-canvas');
+  const bloque = currentBloques.find(b => b.id === bloqueId);
+  if (!bloque) return;
+
+  const contenido = _extraerTextoBloque(bloque.contenido, bloque.tipo);
+  const marker = `[bloque:${bloque.tipo}]\n${contenido.trim()}\n[/bloque]`;
+  const pos = canvas.selectionStart;
+  const before = canvas.value.substring(0, pos);
+  const after = canvas.value.substring(pos);
+  canvas.value = before + (before && !before.endsWith('\n') ? '\n\n' : '') + marker + '\n' + after;
+  canvas.focus();
+  canvas.selectionStart = canvas.selectionEnd = (before + (before && !before.endsWith('\n') ? '\n\n' : '') + marker + '\n').length;
+}
+
+function insertTextoLibre() {
+  const text = prompt('Texto libre a insertar:');
+  if (text) insertarEnCanvas('__texto__' + Date.now());
+  // Simple: just append to canvas
+  const canvas = document.getElementById('entregable-canvas');
+  canvas.value += (canvas.value ? '\n\n' : '') + text;
+}
+
+async function generarPreview() {
+  const tipo = document.getElementById('entregable-tipo-select').value;
+  const contenido = document.getElementById('entregable-canvas').value;
+
+  try {
+    const r = await fetch(`/api/prospect/${currentPlaceId}/entregable/${tipo}/preview`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        bloque_ids: currentBloques.map(b => b.id),
+        contenido_editor: contenido
+      })
+    });
+    const d = await r.json();
+    const canvas = document.getElementById('entregable-canvas');
+    const previewContent = document.getElementById('entregable-preview-content');
+
+    if (d.html) {
+      // Strip <html><head> wrapper, keep only body content
+      const bodyMatch = d.html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+      previewContent.innerHTML = bodyMatch ? bodyMatch[1] : d.html;
+    } else if (d.slides) {
+      previewContent.innerHTML = '<h3 style="margin-bottom:12px; color:#16213e;">Slides generados:</h3>' +
+        d.slides.map((s, i) => `<div style="margin-bottom:8px; padding:12px; background:#f0f4ff; border-radius:6px; border-left:3px solid #e94560;">
+          <strong>Slide ${s.num}: ${s.titulo}</strong>
+          <div style="font-size:0.82em; color:#666; margin-top:4px;">${s.tipo === 'estatico' ? 'Contenido estático' : 'Basado en bloque'}</div>
+        </div>`).join('');
+    }
+
+    // Reemplazar canvas con preview
+    const previewWrap = document.getElementById('entregable-preview');
+    previewWrap.classList.add('visible');
+    canvas.style.display = 'none';
+
+  } catch(e) { toast('Error generando preview: ' + e.message, 'error'); }
+}
+
+function volverAEditor() {
+  const canvas = document.getElementById('entregable-canvas');
+  const previewWrap = document.getElementById('entregable-preview');
+  previewWrap.classList.remove('visible');
+  canvas.style.display = 'block';
+}
+
+async function exportarDOCX() {
+  const tipo = document.getElementById('entregable-tipo-select').value;
+  const contenido = document.getElementById('entregable-canvas').value;
+  toast('Exportando DOCX...', '');
+  try {
+    const r = await fetch(`/api/prospect/${currentPlaceId}/exportar/docx`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        tipo_entregable: tipo,
+        bloque_ids: currentBloques.map(b => b.id),
+        contenido_editor: contenido
+      })
+    });
+    if (!r.ok) throw new Error('Export failed');
+    const blob = await r.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = r.headers.get('content-disposition')?.match(/filename="(.+)"/)?.[1] || 'Carta_Teaser.docx';
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch(e) { toast('Error exportando: ' + e.message, 'error'); }
+}
+
+async function exportarHTML() {
+  const tipo = document.getElementById('entregable-tipo-select').value;
+  const contenido = document.getElementById('entregable-canvas').value;
+  toast('Exportando HTML...', '');
+  try {
+    const r = await fetch(`/api/prospect/${currentPlaceId}/exportar/html`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        tipo_entregable: tipo,
+        bloque_ids: currentBloques.map(b => b.id),
+        contenido_editor: contenido
+      })
+    });
+    if (!r.ok) throw new Error('Export failed');
+    const blob = await r.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = r.headers.get('content-disposition')?.match(/filename="(.+)"/)?.[1] || 'Carta_Teaser.html';
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch(e) { toast('Error exportando: ' + e.message, 'error'); }
+}
+
+// ─── Toast ──────────────────────────────────────────────────────────────────
+
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show' + (type ? ' ' + type : '');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// ─── Boot ────────────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>

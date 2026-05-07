@@ -1,0 +1,36 @@
+{
+  "id": "insight_estrategico_ChIJwyzO_QX_0YURXcI28Js0Dbg",
+  "tipo": "insight_estrategico",
+  "nombre": "Insight Estratégico — Hospital Veterinario Delta",
+  "autogenerar": true,
+  "fuentes": {
+    "maps_audit": [
+      "Resumen Ejecutivo",
+      "Findings",
+      "Presión Competitiva"
+    ],
+    "review_insights": [
+      "Insight",
+      "Oportunidades",
+      "Debilidades"
+    ],
+    "competitive_intel": [
+      "Resumen",
+      "Indicadores de Seguimiento Competitivo"
+    ]
+  },
+  "prompt_usado": "Eres un consultor estratégico senior que acaba de revisar los datos\nde una clínica u hospital y tiene que decirle al dueño LA ÚNICA COSA que\ncambiará su negocio si la hace MAÑANA.\n\nReglas:\n1. Resume en UNA oración la insight más importante (el 'momento wow')\n2. Explica por qué nadie más se lo ha dicho — qué datos lo demuestran\n3. Da el siguiente paso concreto: qué hacer, cómo empezar, cuánto cuesta el error de no hacerlo\n\nTono: mentor directo. Como la conversación que cambia una decisión.\nEjemplo: 'El problema no es tu rating. Es que Google te muestra a gente\nque busca atención urgente y tú no apareces en los primeros 3 resultados.\nCada paciente que no te encuentra es uno que va a la clínica de la esquina.\nOptimizar tu perfil cuesta una tarde y podría cambiar tu flujo de pacientes.'\n\nResponde SOLO con JSON válido: {conclusion: string}.\nConclusión de 2-4 oraciones, estratégica, memorable.\n\n--- DATOS ---\nmaps_audit: Resumen Ejecutivo\n---\nGoogle Maps muestra 3.3/5 con 1814 reseñas. La presión competitiva es crítica con 9 competidores mejor valorados.\n\nmaps_audit: Findings\n---\n[Alta] Rating de Google Maps debajo de objetivo: 3.3/5.\n[Alta] Presión competitiva crítica: 9 competidores con mejor rating.\n[Media] Brecha de rating contra top 3: -0.97 puntos.\n[Baja] Operación 24h activa, ventaja para capturar demanda urgente.\n[Media] No hay evidencia de respuesta activa a reseñas; esto afecta reputación y confianza.\n\nmaps_audit: Presión Competitiva\n---\nCrítica — 9 competidores con mejor rating.\n\nreview_insights: Insight\n---\nEl hospital tiene una base médica sólida con médicos altamente reconocidos como el Doctor Antonio Claudio, la Doctora Alhelí Sierra (cardióloga) y el equipo de cirugía del Doctor Pastrana, lo que genera recomendaciones frecuentes de clientes satisfechos que regresan. Sin embargo, existe una fricción grave en la capa administrativa: la recepción es percibida como ineficiente, los tiempos de espera para consultas y emergencias son excesivos, y hay quejas recurrentes sobre falta de seguimiento y comunicación, lo que genera una percepción de que el precio no corresponde al servicio administrativo recibido. Los clientes que pagan caro esperan una experiencia fluida en todos los frentes, no solo en lo médico.\n\nreview_insights: Oportunidades\n---\n• Profesionalizar la recepción con capacitación en empatía y eficiencia, o bien implementar un sistema de turnos digitales con estimación de espera en tiempo real\n  • Crear un protocolo de comunicación post-consulta: mensaje o llamada de seguimiento en 24-48h para entregar resultados pendientes y mostrar continuidad en la atención\n  • Crear un programa de loyalty o beneficios por frecuencia de visita para clientes recurrentes que ya confían en el hospital, generando más ingresos recurrentes\n\nreview_insights: Debilidades\n---\n• Recepción y procesos administrativos extremadamente lentos y deficientes (horas para pagar, nunca hay lugar, comunicación nula)\n  • Tiempos de espera excesivos tanto en urgencias como en consultas de especialidad\n  • Falta de seguimiento: resultados de laboratorios no entregados, médicos inaccesibles post-consulta\n  • Comunicación deficiente: sin respuesta por teléfono, correo ignorado, ni siquiera el médico se presenta en urgencias\n\ncompetitive_intel: Resumen\n---\nScore: 35 | Grado: Vulnerable\n\ncompetitive_intel: Indicadores de Seguimiento Competitivo\n---\n• KPI: Rating Google | Baseline Actual: 3.3 | Meta 30 días: 3.4 | Meta 90 días: 3.6-3.7\n  • KPI: Reseñas respondidas | Baseline Actual: ~65% | Meta 30 días: 90% | Meta 90 días: 100%\n  • KPI: Fotos en GBP | Baseline Actual: 0 | Meta 30 días: 10 | Meta 90 días: 15-20\n  • KPI: Servicios publicados en GBP | Baseline Actual: 0 | Meta 30 días: 5 | Meta 90 días: 10\n  • KPI: Engagement Instagram | Baseline Actual: 0.15% | Meta 30 días: 0.5% | Meta 90 días: 1.0%\n  • KPI: Engagement Facebook | Baseline Actual: 0.01% | Meta 30 días: 0.1% | Meta 90 días: 0.3%\n  • KPI: Posts TikTok (frecuencia) | Baseline Actual: 0/999 días | Meta 30 días: 1/semana | Meta 90 días: 2-3/semana",
+  "prompt_custom": "Eres un consultor estratégico senior que acaba de revisar los datos\nde una clínica u hospital y tiene que decirle al dueño LA ÚNICA COSA que\ncambiará su negocio si la hace MAÑANA.\n\nReglas:\n1. Resume en UNA oración la insight más importante (el 'momento wow')\n2. Explica por qué nadie más se lo ha dicho — qué datos lo demuestran\n3. Da el siguiente paso concreto: qué hacer, cómo empezar, cuánto cuesta el error de no hacerlo\n\nTono: mentor directo. Como la conversación que cambia una decisión.\nEjemplo: 'El problema no es tu rating. Es que Google te muestra a gente\nque busca atención urgente y tú no apareces en los primeros 3 resultados.\nCada paciente que no te encuentra es uno que va a la clínica de la esquina.\nOptimizar tu perfil cuesta una tarde y podría cambiar tu flujo de pacientes.'\n\nResponde SOLO con JSON válido: {conclusion: string}.\nConclusión de 2-4 oraciones, estratégica, memorable.",
+  "contenido": {
+    "conclusion": "El problema no es tu rating de 3.3 — es que tienes 1,814 pacientes que vinieron, muchos probablemente satisfechos, y no estás usando ninguna de esas interacciones para construir reputación, porque solo respondes el 65% de las reseñas mientras 9 competidores mejores posicionados sí lo hacen; empezar a responder cada reseña mañana es gratis, toma 20 minutos al día, y es la intervención de mayor ROI inmediato para cerrar esa brecha de -0.97 puntos contra el top 3 sin tocar una sola operación médica."
+  },
+  "metadata": {
+    "created_at": "2026-05-04T12:47:25.741214",
+    "updated_at": "2026-05-04T12:47:25.741214",
+    "version": 5,
+    "generado_por": "claude-code",
+    "modelo_ia": "sonnet-4",
+    "usuario_edito": false,
+    "nota_editor": ""
+  }
+}
