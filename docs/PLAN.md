@@ -1,5 +1,7 @@
 # Plan — salesCrafter
 
+**Última actualización:** 2026-05-07
+
 ## Contexto
 
 salesCrafter es el hermano de salesSystem. Lee de la misma UnifiedCache
@@ -117,6 +119,7 @@ salesCrafter/
 | `photos` | Análisis de Fotos |
 | `servicios_publicados` | Servicios Publicados |
 | `owner_response_metrics` | owner_replies_count, reply_rate_percent, total_reviews_considered |
+| `**_patient_estimates`** | Estimación de Pacientes (calculado al vuelo si no existe en cache) |
 
 #### 2. Motor de Generación de Bloques ✅
 - `BloqueGenerator.generate()` — usa `fuentes_default` del template si `fuentes=null`
@@ -139,7 +142,7 @@ salesCrafter/
 
 | Tipo | Descripción | Fuentes default |
 |------|-------------|-----------------|
-| `hook_dinero` | Cuantifica en dinero la oportunidad | maps_audit + review_insights + services |
+| `hook_dinero` | Cuantifica en dinero la oportunidad | maps_audit + review_insights + services + **_patient_estimates** |
 | `oportunidades` | Mayor oportunidad detectada | maps_audit + review_insights |
 | `fortalezas` | Lo mejor del negocio | review_insights + maps_audit |
 | `comparativa_competitiva` | Cómo gana vs. competencia | maps_audit + competitive_intel |
@@ -147,6 +150,42 @@ salesCrafter/
 | `slide_score` | Score con interpretación | maps_audit |
 | `temas_resenas` | Temas positivos/negativos | review_insights |
 | `servicios_oportunidad` | Qué servicios publicar | services + maps_audit + competitive_intel |
+
+#### 5. `_patient_estimates` como fuente ✅ (2026-05-07)
+
+Sección calculada de la UnifiedCache que contiene la estimación de ingresos del prospecto:
+
+```json
+"_patient_estimates": {
+  "sample_size": 50,
+  "sample_date_from": "2026-04-08",
+  "sample_date_to": "2026-04-30",
+  "reviews_per_month_avg": 50.0,
+  "total_reviews_google": 1814,
+  "est_patients_per_month": 714,
+  "ticket_promedio_mxn": 2083,
+  "est_monthly_revenue_mxn": 1487262,
+  "ticket_source": "weighted_average_minimax",
+  "ticket_breakdown": [
+    {
+      "servicio": "Consulta General",
+      "precio_mercado": 450.0,
+      "frecuencia_resenas": 0.1081,
+      "fuente": "AGATAN CDMX, Clínica Veterinaria San Francisco..."
+    },
+    ...
+  ],
+  "fuentes_precio": ["mcp_minimax_web_search", "services_reviews"]
+}
+```
+
+**Cálculo del ticket:** `Σ(precio_mercado × frecuencia) / Σ(frecuencia)` donde:
+- `precio_mercado` se investiga en la web con MCP minimax (por zona y sector: veterinario vs médico)
+- `frecuencia` = menciones del servicio en reseñas / total menciones
+
+**Disponibilidad en UI:** aparece como fuente `_patient_estimates` → `["Estimación de Pacientes"]` en el sources-tree de salesCrafter. Usado por `hook_dinero` para cuantificar la oportunidad en pesos.
+
+**Fallback:** si `_patient_estimates` no existe en cache, `cache_reader.py` lo calcula al vuelo desde `reviews` y `numero_reviews`.
 
 ---
 
